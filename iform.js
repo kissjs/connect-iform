@@ -47,17 +47,14 @@ var Validator = require('validator').Validator
   , Filter    = require('validator').Filter
   ;
 
-var defaultErrorHandler = function(err, req, res, next){next(err);};
-
 function iForm(rules){
 
   /*
    * vars in closure
    */
-  var fields         = {}
+  var ifields         = {}
     , requiredFields = {}
     , ruleNames      = []
-    , errorHandler   = defaultErrorHandler
     ;
 
   function middleware(fields){
@@ -65,17 +62,20 @@ function iForm(rules){
     if(!fields) fields = ruleNames;
 
     return function(req, res, next){
+      var params = req.body;
+      var iform  = req.iform  = {};
+      var idata  = iform.data = {};
+      var field, field_name;
+
       // inject node-validator errorHandler
-      var validator = simpleValidator(function(msg){
-          // call user define errorHandler
-          errorHandler.call(null, msg, req, res, next);
+      var ivalidator = iValidator(function(msg){
+          (iform.errors || (iform.errors = {}))[field_name] = msg;
       });
 
-      var params = req.params || req.body || req.query;
-      var formdata = req.formdata = {};
       for (var i = 0; i < fields.length; i += 1) {
-        var name = fields[i]
-        formdata[name] = fields[name].validate(params[name], check);
+        field_name = fields[i];
+        if(field = ifields[field_name])
+          idata[field_name] = field.validate(params[field_name], ivalidator);
       };
 
       next();
@@ -87,16 +87,16 @@ function iForm(rules){
    */
   var form = middleware;
 
-  form.fields = fields;
+  form.fields = ifields;
 
   // this must at the bottom of iForm, cause of form[name]
   for(var name in rules){
     if(rules.hasOwnProperty(name)) {
       var rule = rules[name];
-      if(typeof rule !== 'Object'){
+      if(typeof rule !== 'object'){
         rule = {type: rule};
       }
-      var field = fields[name] = iField(rule);
+      var field = ifields[name] = iField(rule);
       if(!form[name]) form[name] = field;
       if(rule.required) requiredFields[name] = field;
       ruleNames.push(name);
@@ -112,18 +112,18 @@ function iField(rules) {
     // TODO toHTML
   }
 
-  field.validate = function(value, simpleValidator, fail_msg){
-    return simpleValidator(value, rules, fail_msg);
+  field.validate = function(value, ivalidator, fail_msg){
+    return ivalidator(value, rules, fail_msg);
   }
 
   return field;
 }
 
-function simpleValidator = function(errorHandler) {
+function iValidator (errorHandler) {
   var validator = new Validator()
     , filter = new Filter();
 
-  validator.error(errorHandler);
+  if(errorHandler) validator.error = errorHandler;
 
   return function(value, rules, fail_msg) {
     validator.check(value, fail_msg);
@@ -133,14 +133,14 @@ function simpleValidator = function(errorHandler) {
       // f(v)
       (f = ruleValidator[name]) && f.apply(validator, Array.isArray(v = rules[name]) ? v : [v]);
     }
-    type && typeValidator[type].apply(validator);
+    if(type && (f=typeValidator[type])) f.apply(validator);
 
-    filter.check(value);
+    filter.convert(value);
     for(var name in rules) {
       // f(v)
       (f = ruleFilter[name]) && f.apply(filter, Array.isArray(v = rules[name]) ? v : [v]);
     }
-    type && typeFilter[type].apply(filter);
+    if(type && (f=typeFilter[type])) f.apply(validator);
     return filter.value();
   }
 
@@ -151,7 +151,8 @@ var typeValidator = {}
   , typeFilter    = {}
   , ruleFilter    = {}
   ;
-function updateValidators() {
+
+iForm.update = function() {
 
   for(var name in Validator.prototype) {
     if(name.indexOf('is') === 0 && name.length > 2) {
@@ -164,13 +165,13 @@ function updateValidators() {
   for(var name in Filter.prototype) {
     ruleFilter[name] = ruleFilter[name.toLowerCase()] = Filter.prototype[name];
   }
+
 }
 
 ruleValidator[Number] = typeValidator[Number] = Validator.prototype.isDecimal;
 ruleValidator[Date]   = typeValidator[Date]   = Validator.prototype.isDate;
 ruleFilter[Number]    = typeFilter[Number]    = Filter.prototype.toFloat;
 
-updateValidators();
+iForm.update();
 
-iForm.updateValidators = updateValidators;
 module.exports = iForm;

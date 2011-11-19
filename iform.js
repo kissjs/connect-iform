@@ -16,8 +16,13 @@
  *      email : {
  *        type :'email',
  *        required : true
- *      }
- *      age : Number, 
+ *      },
+ *      avatar : {
+ *        defaultValue : function(req){
+ *          return getAvatar(req.body.email);
+ *        }
+ *      },
+ *      age : Number,
  *      birth : Date
  *  });
  *

@@ -17,9 +17,11 @@ Example
 
     var userForm = iform({
             username: {
+                required : true,
                 len : [4, 15]
             },
             password: {
+                required : true,
                 len : [6, 20]
             },
 
@@ -31,6 +33,12 @@ Example
                 type : Date,
                 isAfter: new Date('01/01/1900'),
                 isBefore : null // means now
+            },
+
+            avatar : {
+                defaultValue : function(req) {
+                    return '/avatar/' + req.body.username + '.png';
+                }
             },
 
             age : 'int',

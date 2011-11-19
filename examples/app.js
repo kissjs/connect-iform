@@ -29,6 +29,11 @@ var userForm = iform({
       required: true
     , len: 3
     }
+  , avatar : {
+      defaultValue : function(req){
+        return '/avatar/' + req.body.username +'.png';
+      }
+    }
   , age : 'int'
   , floatField : 'float'
   , birth: Date

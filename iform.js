@@ -53,13 +53,16 @@ function iForm(rules){
    * vars in closure
    */
   var ifields         = {}
-    , requiredFields = {}
-    , ruleNames      = []
+    , fieldNames      = []
     ;
 
+  /**
+   * @param {Array} fields fields will add to req.iform.data
+   * @return {function} middleware
+   */
   function middleware(fields){
 
-    if(!fields) fields = ruleNames;
+    if(!fields) fields = fieldNames;
 
     return function(req, res, next){
       var params = req.body;
@@ -81,10 +84,12 @@ function iForm(rules){
           var rules = field.rules;
 
           if(value === undefined) {
+            // form does not contains
             if(rules.required) {
               appendError(field_name + ' is required');
             }
           } else if(value === null || value === '') {
+            // user leave it blank
             if(rules.defaultValue){
               var v = rules.defaultValue;
               idata[field_name] = typeof v === 'function' ? v(req) : v;
@@ -95,6 +100,7 @@ function iForm(rules){
               idata[field_name] = empty(rules.type);
             }
           } else {
+            // check the value and convert it
             idata[field_name] = field.validate(value, ivalidator);
           }
         }
@@ -109,8 +115,10 @@ function iForm(rules){
    */
   var form = middleware;
 
+  // form.fields.username() <==> form.username()
   form.fields = ifields;
 
+  // init fields
   // this must at the bottom of iForm, cause of form[name]
   for(var name in rules){
     if(rules.hasOwnProperty(name)) {
@@ -120,14 +128,16 @@ function iForm(rules){
       }
       var field = ifields[name] = iField(rule);
       if(!form[name]) form[name] = field;
-      if(rule.required) requiredFields[name] = field;
-      ruleNames.push(name);
+      fieldNames.push(name);
     }
   }
 
   return form;
 }
 
+/**
+ * field holder the rules
+ */
 function iField(rules) {
   // alias toHTML
   var field = function(){
@@ -143,6 +153,9 @@ function iField(rules) {
   return field;
 }
 
+/**
+ * generate default empty value if user leave a non-required field blank
+ */
 function empty(type) {
   if(!type) return '';
   if(typeof type === 'string') {
@@ -165,12 +178,26 @@ function empty(type) {
   }
 }
 
+/**
+ * wrap the node-validator
+ *
+ * @param {function(msg)} errorHandler
+ * @return {function}
+ */
 function iValidator (errorHandler) {
   var validator = new Validator()
     , filter = new Filter();
 
   if(errorHandler) validator.error = errorHandler;
 
+  /**
+   * validate value by rules, and convert it
+   *
+   * @param {string} value
+   * @param {object} rules
+   * @param {string} fail_msg
+   * @return {*} converted value
+   */
   return function(value, rules, fail_msg) {
     validator.check(value, fail_msg);
     var type = rules.type;
@@ -192,12 +219,17 @@ function iValidator (errorHandler) {
 
 }
 
+// hash Validator Filter methods to use in iValidator
 var typeValidator = {}
   , ruleValidator = {}
   , typeFilter    = {}
   , ruleFilter    = {}
   ;
 
+/**
+ * init validator methods hashs
+ * you must call `update` if you extend node-validator
+ */
 iForm.update = function() {
 
   for(var name in Validator.prototype) {
@@ -220,4 +252,5 @@ ruleFilter[Number]    = typeFilter[Number]    = Filter.prototype.toFloat;
 
 iForm.update();
 
+// export iForm
 module.exports = iForm;

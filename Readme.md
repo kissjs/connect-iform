@@ -43,7 +43,7 @@ Example
                 return res.json(req.iform.errors);
             }
             db.users.insert(req.iform.data, function(err, data) {
-                res.json({success : true, message: 'Sign up successfully});
+                res.json({success : true, message: 'Sign up successfully'});
             });
     });
 
@@ -119,7 +119,7 @@ You can also use `Date` `Number` instead of `'date'`, `'number'`
                 return res.json(req.iform.errors);
             }
             db.users.insert(req.iform.data, function(err, data) {
-                res.json({success : true, message: 'Sign up successfully});
+                res.json({success : true, message: 'Sign up successfully'});
             });
     });
 ```

@@ -21,7 +21,8 @@ app.configure(function(){
 
 var userForm = iform({
     username: {
-      len: [3, 10]
+      required: true
+    , len: [3, 10]
     }
   , email: 'email'
   , password: {

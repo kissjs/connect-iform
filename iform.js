@@ -67,15 +67,37 @@ function iForm(rules){
       var idata  = iform.data = {};
       var field, field_name;
 
-      // inject node-validator errorHandler
-      var ivalidator = iValidator(function(msg){
+      function appendError(msg){
           (iform.errors || (iform.errors = {}))[field_name] = msg;
-      });
+      }
+
+      // inject node-validator errorHandler
+      var ivalidator = iValidator(appendError);
 
       for (var i = 0; i < fields.length; i += 1) {
         field_name = fields[i];
-        if(field = ifields[field_name])
-          idata[field_name] = field.validate(params[field_name], ivalidator);
+        if(field = ifields[field_name]){
+          var value = params[field_name];
+          var rules = field.rules;
+
+          if(value === undefined) {
+            if(rules.required) {
+              appendError(field_name + ' is required');
+            }
+          } else if(value === null || value === '') {
+            if(rules.defaultValue){
+              var v = rules.defaultValue;
+              idata[field_name] = typeof v === 'function' ? v(req) : v;
+            }
+            else if(rules.required) {
+              appendError(field_name + ' is required');
+            } else {
+              idata[field_name] = empty(rules.type);
+            }
+          } else {
+            idata[field_name] = field.validate(value, ivalidator);
+          }
+        }
       };
 
       next();
@@ -116,7 +138,31 @@ function iField(rules) {
     return ivalidator(value, rules, fail_msg);
   }
 
+  field.rules = rules;
+
   return field;
+}
+
+function empty(type) {
+  if(!type) return '';
+  if(typeof type === 'string') {
+    switch(type.toLowerCase()) {
+    case 'int':
+    case 'decimal':
+    case 'float':
+      return 0;
+    case 'date':
+      return null;
+    default:
+      return ''
+    }
+  } else if(type === Number) {
+    return 0;
+  } else if(type === Date) {
+    return null;
+  } else {
+    return '';
+  }
 }
 
 function iValidator (errorHandler) {

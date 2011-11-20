@@ -193,7 +193,11 @@ function iValidator (errorHandler) {
   var validator = new Validator()
     , filter = new Filter();
 
-  if(errorHandler) validator.error = errorHandler;
+  if(errorHandler) {
+    validator.error = errorHandler;
+    filter.error    = errorHandler;
+  }
+
 
   /**
    * validate value by rules, and convert it
@@ -204,6 +208,8 @@ function iValidator (errorHandler) {
    * @return {*} converted value
    */
   return function(value, rules, fail_msg) {
+    // TODO optimize this, loops, init what need in fields
+    // FIXME how about sequence check?
     validator.check(value, fail_msg);
     var type = rules.type;
     var f, v;
@@ -215,8 +221,14 @@ function iValidator (errorHandler) {
 
     filter.convert(value);
     for(var name in rules) {
-      // f(v)
-      (f = ruleFilter[name]) && f.apply(filter, Array.isArray(v = rules[name]) ? v : [v]);
+      v = rules[name];
+      if(typeof v === 'function') {
+        v.apply(filter);
+      }
+      else {
+        // f(v)
+        (f = ruleFilter[name]) && f.apply(filter, Array.isArray(v = rules[name]) ? v : [v]);
+      }
     }
     if(type && (f=typeFilter[type])) f.apply(validator);
     return filter.value();

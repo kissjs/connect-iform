@@ -74,7 +74,7 @@ Example
 
 At first you need define some rules for validation
 
-As you see in the example, define a form like this : `var form = iform(rules);`
+As you can see in the example, define a form like this : `var form = iform(rules);`
 
 `rules` is like `{fieldName : fieldRules, ...}`
 
@@ -96,7 +96,7 @@ The `len` is defined by [node-validator](https://github.com/chriso/node-validato
     Validator.prototype.len = function(min, max) { ... }
 ```
 
-It takes two parameters. so we use a array as the parameters.
+It takes two parameters. so we use an array as the parameters.
 
 The `type` is a special rule ,e.g.
 

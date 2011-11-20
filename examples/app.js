@@ -36,7 +36,19 @@ var userForm = iform({
     }
   , age : 'int'
   , floatField : 'float'
-  , birth: Date
+  , birth: {
+      type: Date
+    , toDate : function(){
+        if (this.str instanceof Date) {
+          return;
+        }
+        var intDate = Date.parse(this.str);
+        if (isNaN(intDate)) {
+          return this.str = null;
+        } 
+        this.str = new Date(intDate);
+      }
+    }
 });
 
 // Routes

@@ -62,12 +62,13 @@ function iForm(rules){
     ;
 
   /**
-   * @param {Array} fields fields will add to req.iform.data
+   * @param {arguments} fields fields will add to req.iform.data
    * @return {function} middleware
    */
-  function middleware(fields){
+  function middleware(){
 
-    if(!fields) fields = fieldNames;
+    var fields = Array.prototype.slice.call(arguments);
+    if(!fields.length) fields = fieldNames;
 
     return function(req, res, next){
       var params = req.body;
@@ -87,6 +88,8 @@ function iForm(rules){
         if(field = ifields[field_name]){
           var value = params[field_name];
           var rules = field.rules;
+          console.log(field_name);
+          console.log(value);
 
           if(value === undefined) {
             // form does not contains

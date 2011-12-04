@@ -18,7 +18,7 @@
  *        required : true
  *      },
  *      avatar : {
- *        defaultValue : function(req){
+ *        default : function(req){
  *          return getAvatar(req.body.email);
  *        }
  *      },
@@ -74,7 +74,7 @@ function iForm(rules){
       var params = req.body;
       var iform  = req.iform  = {};
       var idata  = iform.data = {};
-      var field, field_name;
+      var field, field_name, value;
 
       function appendError(msg){
           (iform.errors || (iform.errors = {}))[field_name] = msg;
@@ -85,11 +85,9 @@ function iForm(rules){
 
       for (var i = 0; i < fields.length; i += 1) {
         field_name = fields[i];
+        value = params[field_name];
         if(field = ifields[field_name]){
-          var value = params[field_name];
           var rules = field.rules;
-          console.log(field_name);
-          console.log(value);
 
           if(value === undefined) {
             // form does not contains
@@ -98,8 +96,8 @@ function iForm(rules){
             }
           } else if(value === null || value === '') {
             // user leave it blank
-            if(rules.defaultValue){
-              var v = rules.defaultValue;
+            if(rules.default){
+              var v = rules.default;
               idata[field_name] = typeof v === 'function' ? v(req) : v;
             }
             else if(rules.required) {
@@ -111,6 +109,8 @@ function iForm(rules){
             // check the value and convert it
             idata[field_name] = field.validate(value, ivalidator);
           }
+        } else {
+          idata[field_name] = value;
         }
       };
 

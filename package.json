@@ -1,20 +1,19 @@
 {
-  "author": "Lin Gui <guileen@gmail.com>",
+  "author": "Gui Lin <guileen@gmail.com>",
   "name": "iform",
-  "description": "generate html5 style form and do validation",
-  "version": "0.0.1",
+  "description": "Form data validation middleware",
+  "version": "0.0.2",
   "repository": {
-    "url": ""
+    "type": "git",
+    "url": "git://github.com/guileen/connect-iform.git"
   },
   "main": "iform.js",
   "engines": {
     "node": "*"
   },
   "dependencies": {
-      "validator" : ">= 0.1.0"
+      "validator" : "*"
   },
   "devDependencies": {
-      "express" : ">= 2.0.0"
-    , "jade"    : ">= 0.1.0"
   }
 }

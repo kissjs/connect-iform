@@ -7,8 +7,6 @@ node-iform is a connect middleware help you validate and convert form data.
 **NOTE** You need to view [node-validator](https://github.com/chriso/node-validator)
 for more information.
 
-**NOTE** If you find a bug, or want some feature, send a **pull request**.
-
 Install
 ----
 
